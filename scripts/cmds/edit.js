@@ -21,7 +21,7 @@ module.exports = {
     author: "Mueid Mursalin Rifat (Fixed by NisaN)",
     countDown: 15,
     role: 0,
-    usePrefix: false,
+    usePrefix: true,
     shortDescription: "🎨 Edit images with Shadowx-AI",
     longDescription: "Apply various edits and styles to images using AI",
     category: "media",
