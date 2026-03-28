@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KuRuMi Bot Logs</title>
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+body{
+background: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+min-height:100vh;
+font-family:'Segoe UI',sans-serif;
+padding:1rem;
+color:white;
+}
+
+.glass-card{
+background: rgba(255,255,255,0.1);
+backdrop-filter: blur(15px);
+border-radius:20px;
+padding:1.5rem;
+max-width:800px;
+margin:2rem auto;
+border:1px solid rgba(255,255,255,0.3);
+}
+
+.logs-container{
+max-height:500px;
+overflow-y:auto;
+background:rgba(255,255,255,0.05);
+border-radius:12px;
+padding:1rem;
+font-family:monospace;
+font-size:0.9rem;
+line-height:1.4rem;
+}
+
+button{
+background:transparent;
+border:1.5px solid #ff66cc;
+padding:0.5rem 1rem;
+border-radius:12px;
+color:#ff66cc;
+font-weight:bold;
+cursor:pointer;
+transition:all 0.3s ease;
+}
+
+button:hover{
+background:#ff66cc;
+color:white;
+}
+
+.copyright{
+text-align:center;
+margin-top:20px;
+font-size:13px;
+opacity:0.8;
+}
+</style>
+</head>
+
+<body>
+
+<div class="glass-card">
+
+<h1 class="text-2xl font-bold mb-4">
+📋 𝐊𝐮𝐑𝐮𝐌𝐢 𝐕𝟑 𝐋𝐨𝐠𝐬
+</h1>
+
+<div class="logs-container" id="logsContent">
+Ｌｏａｄｉｎｇ Ｌｏｇｓ...
+</div>
+
+<div class="mt-4 flex justify-between">
+
+<button onclick="refreshLogs()">
+🔄 𝐑𝐞𝐟𝐫𝐞𝐬𝐡 𝐋𝐨𝐠𝐬
+</button>
+
+<button onclick="goBack()">
+⬅️ 𝘉𝘢𝘤𝘬 𝘵𝘰 𝘋𝘢𝘴𝘩𝘣𝘰𝘢𝘳𝘥
+</button>
+
+</div>
+
+<div class="copyright">
+© 2026 Developed by NiSaN
+</div>
+
+</div>
+
+
+<script>
+
+async function fetchLogs(){
+try{
+
+const res = await fetch('/api/logs');
+const data = await res.json();
+
+const logsDiv = document.getElementById('logsContent');
+
+logsDiv.innerHTML = data.logs
+.map(log => `<div>${log}</div>`)
+.join('');
+
+logsDiv.scrollTop = logsDiv.scrollHeight;
+
+}catch(err){
+
+document.getElementById('logsContent')
+.textContent = 'Error loading logs: ' + err.message;
+
+console.error(err);
+
+}
+}
+
+function refreshLogs(){
+fetchLogs();
+}
+
+function goBack(){
+window.location.href='/dashboard';
+}
+
+fetchLogs();
+setInterval(fetchLogs,5000);
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>𝐊𝐮𝐑𝐮𝐌𝐢-𝐕𝟑 𝐋𝐨𝐠𝐢𝐧 𝐖𝐞𝐛</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+    body {
+        margin: 0;
+        font-family: 'Segoe UI', sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+    }
+
+    .login-card {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(15px);
+        border-radius: 20px;
+        padding: 2rem;
+        width: 100%;
+        max-width: 400px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        border: 1px solid rgba(255,255,255,0.3);
+    }
+
+    h1 {
+        text-align: center;
+        font-size: 2rem;
+        color: #fff;
+        margin-bottom: 1.5rem;
+        text-shadow: 0 0 8px #fff;
+    }
+
+    .input-box {
+        position: relative;
+        margin-bottom: 1.5rem;
+    }
+
+    .input-box input {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,0.3);
+        background: rgba(255,255,255,0.1);
+        color: #fff;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+    }
+
+    .input-box input:focus {
+        outline: none;
+        background: rgba(255,255,255,0.2);
+        border-color: #ff66cc;
+        box-shadow: 0 0 12px #ff66cc;
+    }
+
+    .input-box label {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: rgba(255,255,255,0.7);
+        font-size: 0.9rem;
+        pointer-events: none;
+        transition: all 0.3s ease;
+    }
+
+    .input-box input:focus + label,
+    .input-box input:not(:placeholder-shown) + label {
+        top: -0.6rem;
+        left: 0.8rem;
+        font-size: 0.75rem;
+        color: #ff66cc;
+        background: rgba(0,0,0,0.1);
+        padding: 0 0.25rem;
+        border-radius: 4px;
+    }
+
+    button {
+        width: 100%;
+        padding: 0.45rem 1rem; 
+        border-radius: 12px;
+        border: 1.5px solid #ff66cc; 
+        background: transparent;
+        font-weight: bold;
+        font-size: 0.9rem;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        color: #ff66cc;
+        transition: all 0.4s ease;
+        box-shadow: 0 0 6px transparent;
+    }
+
+    button:hover {
+        box-shadow: 0 0 10px #ff66cc, 0 0 16px #ff66cc inset;
+    }
+
+    .message {
+        text-align: center;
+        color: #ff66cc;
+        margin-bottom: 1rem;
+        font-weight: bold;
+        display: none;
+    }
+
+    .copyright {
+        text-align: center;
+        margin-top: 1.5rem;
+        color: rgba(255,255,255,0.7);
+        font-size: 0.75rem;
+    }
+</style>
+</head>
+<body>
+<div class="login-card">
+    <h1>𝐊𝐮𝐑𝐮𝐌𝐢 𝐁𝐨𝐭-𝐕𝟑 𝐋𝐨𝐠𝐢𝐧</h1>
+    <div id="message" class="message"></div>
+    <form id="loginForm">
+        <div class="input-box">
+            <input type="text" id="username" placeholder=" " required>
+            <label for="username">𝐔𝐬𝐞𝐫𝐧𝐚𝐦𝐞</label>
+        </div>
+        <div class="input-box">
+            <input type="password" id="password" placeholder=" " required>
+            <label for="password">𝐏𝐚𝐬𝐬𝐰𝐨𝐫𝐝</label>
+        </div>
+        <button type="submit">𝗟𝗼𝗴𝗶𝗻</button>
+    </form>
+    <div class="copyright">© 2026 Developed by 𝗡𝗶𝗦𝗮𝗡</div>
+</div>
+
+<script>
+const form = document.getElementById('loginForm');
+const messageDiv = document.getElementById('message');
+
+form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value.trim();
+
+    if (!username || !password) {
+        showMessage('𝐏𝐥𝐞𝐚𝐬𝐞 𝐞𝐧𝐭𝐞𝐫 𝐛𝐨𝐭𝐡 𝐮𝐬𝐞𝐫𝐧𝐚𝐦𝐞 𝐚𝐧𝐝 𝐩𝐚𝐬𝐬𝐰𝐨𝐫𝐝', 'pink');
+        return;
+    }
+
+    try {
+        const res = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+            showMessage('✅ 𝗟𝗼𝗴𝗶𝗻 𝘀𝘂𝗰𝗰𝗲𝘀𝘀𝗳𝘂𝗹!', 'green');
+            setTimeout(() => {
+                window.location.href = '/dashboard';
+            }, 1000);
+        } else {
+            showMessage('❌ 𝗜𝗻𝘃𝗮𝗹𝗶𝗱 𝘂𝘀𝗲𝗿𝗻𝗮𝗺𝗲 𝗼𝗿 𝗽𝗮𝘀𝘀𝘄𝗼𝗿𝗱', 'pink');
+        }
+
+    } catch (err) {
+        showMessage('❌ Server error', 'pink');
+        console.error(err);
+    }
+});
+
+function showMessage(text, color='pink') {
+    messageDiv.textContent = text;
+    messageDiv.style.display = 'block';
+    messageDiv.style.color = color === 'pink' ? '#ff66cc' : '#33ff99';
+}
+</script>
+</body>
+</html>
