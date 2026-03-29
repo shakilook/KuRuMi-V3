@@ -1,1 +1,37 @@
+name: Goat Bot Runner
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+  schedule:
+    - cron: '0 */6 * * *' # Proti 6 ghonta por por auto-restart hobe (Optional)
+  workflow_dispatch: # Manual start button er jonno
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x' # Goat bot er jonno stable version
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: |
+          npm install --production
+          # Jodi dependencies install e error hoy, 'npm install --legacy-peer-deps' try korte paro
+
+      - name: Start Goat Bot
+        run: node index.js # Tomar bot er main file er nam 'index.js' na hole seta ekhane likho
+        env:
+          NODE_ENV: production
+          # Jodi kono secrets thake (jemon: APP_STATE), niche add koro
+          # APP_STATE: ${{ secrets.APP_STATE }} 
 
