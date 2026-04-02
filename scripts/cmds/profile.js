@@ -1,60 +1,48 @@
+const axios = require("axios");
+const fs = require("fs");
+const path = require("path");
+
 module.exports = {
   config: {
     name: "profile",
-    aliases: ["pfp", "pp"],
-    version: "1.2",
-    author: "dipto",
-    countDown: 5,
+    aliases: ["pp"," pfp"],
+    version: "0.0.1",
+    author: "AHMED TARIF",
+    countDown: 3,
     role: 0,
-    requiredMoney: 5000,
-    description: {
-      en: "Get profile image (cost 5000)"
-    },
-    commandCategory: "image",
+    shortDescription: "𝐒𝐡𝐨𝐰 𝐩𝐫𝐨𝐟𝐢𝐥𝐞 𝐩𝐢𝐜𝐭𝐮𝐫𝐞",
+    longDescription: "pokpok",
+    category: "image",
     guide: {
-      en: "{pn} @tag | userID | reply | facebook url"
+      en: "{pn}[@tag | reply | uid]"
     }
   },
 
-  langs: {
-    en: {
-      notEnoughMoney: "⚠️ You need 5000$ to use this command!",
-      error: "⚠️ Error: %1"
-    }
-  },
-
-  onStart: async function ({ event, message, usersData, args, getLang }) {
-
-    const userData = await usersData.get(event.senderID);
-    const money = userData.data.money || 0;
-
-    if (money < 5000)
-      return message.reply(getLang("notEnoughMoney"));
-
-    const getAvatarUrl = async (uid) => await usersData.getAvatarUrl(uid);
-    const uid = Object.keys(event.mentions)[0] || args[0] || event.senderID;
-    let avt;
-
+  onStart: async function ({ event, message, args, usersData }) {
     try {
-      if (event.type === "message_reply") {
-        avt = await getAvatarUrl(event.messageReply.senderID);
-      }
-      else if (args.join(" ").includes("facebook.com")) {
-        const match = args.join(" ").match(/(\d+)/);
-        if (match) avt = await getAvatarUrl(match[0]);
-        else throw new Error("Invalid Facebook URL.");
-      }
-      else {
-        avt = await getAvatarUrl(uid);
-      }
+      let targetID =
+        (event.type === "message_reply" && event.messageReply?.senderID) ||
+        (event.mentions && Object.keys(event.mentions)[0]) ||
+        (args[0] && !isNaN(args[0]) && args[0]) ||
+        event.senderID;
 
-      message.reply({
-        body: "",
-        attachment: await global.utils.getStreamFromURL(avt)
+      const name = await usersData.getName(targetID).catch(() => "Unknown User");
+
+      const avatarURL = await usersData.getAvatarUrl(targetID);
+
+      const replyText = ``;
+
+      return message.reply({
+        body: replyText,
+        attachment: await global.utils.getStreamFromURL(avatarURL)
       });
 
-    } catch (error) {
-      message.reply(getLang("error", error.message));
+    } catch (err) {
+      console.error("𝐜𝐨𝐦𝐦𝐚𝐧𝐝 𝐞𝐫𝐫𝐨𝐫:", err);
+
+      const errorText = `😡| POK POK  LOCKED VAG🏌️‍♀️ `;
+
+      return message.reply(errorText);
     }
   }
 };
