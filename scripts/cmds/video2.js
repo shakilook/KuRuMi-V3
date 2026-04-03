@@ -1,4 +1,4 @@
-const axios = require("axios");
+!cmd install video2.js const axios = require("axios");
 const fs = require("fs-extra");
 const path = require("path");
 const ytSearch = require("yt-search");
