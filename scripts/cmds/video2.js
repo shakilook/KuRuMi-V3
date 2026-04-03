@@ -1,96 +1,98 @@
-const axios = require('axios');
-const yts = require("yt-search");
+const axios = require("axios");
+const fs = require("fs-extra");
+const path = require("path");
+const ytSearch = require("yt-search");
 
-const baseApiUrl = async () => {
-    const base = await axios.get(
-        `https://raw.githubusercontent.com/Mostakim0978/D1PT0/refs/heads/main/baseApiUrl.json`
-    );
-    return base.data.api;
-};
+const API = "https://www.noobs-apis.run.place";
+const CACHE = path.join(__dirname, "cache");
 
-(async () => {
-    global.apis = {
-        diptoApi: await baseApiUrl()
-    };
-})();
+const isYT = (url) => /(youtu\.be|youtube\.com)/i.test(url);
 
-async function getStreamFromURL(url, pathName) {
-    try {
-        const response = await axios.get(url, {
-            responseType: "stream"
-        });
-        response.data.path = pathName;
-        return response.data;
-    } catch (err) {
-        throw err;
-    }
-}
+const safeName = (name = "video") =>
+  name.replace(/[\\/:*?"<>|]/g, "").slice(0, 60) || "video";
 
-global.utils = {
-    ...global.utils,
-    getStreamFromURL: global.utils.getStreamFromURL || getStreamFromURL
-};
-
-function getVideoID(url) {
-    const checkurl = /^(?:https?:\/\/)?(?:m\.|www\.)?(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))((\w|-){11})(?:\S+)?$/;
-    const match = url.match(checkurl);
-    return match ? match[1] : null;
-}
-
-const config = {
-    name: "video2",
-    author: "Mesbah Saxx",
-    credits: "Mesbah Saxx",
-    version: "1.0.0",
-    role: 0,
-    hasPermssion: 0,
-    description: "",
-    usePrefix: true,
-    prfix: true,
-    category: "media",
-    commandCategory: "media",
-    cooldowns: 5,
-    countDown: 5,
-};
-
-async function onStart({ api, args, event }) {
-    try {
-        let videoID;
-        const url = args[0];
-
-        if (url && (url.includes("youtube.com") || url.includes("youtu.be"))) {
-            videoID = getVideoID(url);
-            if (!videoID) {
-                await api.sendMessage("Invalid YouTube URL.", event.threadID, event.messageID);
-            }
-        } else {
-            const songName = args.join(' ');
-            const w = await api.sendMessage(`Searching song "${songName}"... `, event.threadID);
-            const r = await yts(songName);
-            const videos = r.videos.slice(0, 50);
-
-            const videoData = videos[Math.floor(Math.random() * videos.length)];
-            videoID = videoData.videoId;
-        }
-
-        const { data: { title, quality, downloadLink } } = await axios.get(`${global.apis.diptoApi}/ytDl3?link=${videoID}&format=mp4`);
-
-        api.unsendMessage(w.messageID);
-        
-        const o = '.php';
-        const shortenedLink = (await axios.get(`https://tinyurl.com/api-create${o}?url=${encodeURIComponent(downloadLink)}`)).data;
-
-        await api.sendMessage({
-            body: `🔖 - 𝚃𝚒𝚝𝚕𝚎: ${title}\n✨ - 𝚀𝚞𝚊𝚕𝚒𝚝𝚢: ${quality}\n\n📥 - 𝙳𝚘𝚠𝚗𝚕𝚘𝚊𝚍 𝙻𝚒𝚗𝚔: ${shortenedLink}`,
-            attachment: await global.utils.getStreamFromURL(downloadLink, title+'.mp4')
-        }, event.threadID, event.messageID);
-    } catch (e) {
-        api.sendMessage(e.message || "An error occurred.", event.threadID, event.messageID);
-    }
-}
+const getUrl = (d) =>
+  d?.downloads?.data?.fileUrl ||
+  d?.downloads?.data?.url ||
+  d?.url;
 
 module.exports = {
-    config,
-    onStart,
-    run: onStart
+  config: {
+    name: "video2",
+    aliases: ["vd2"],
+    version: "3.0",
+    author: "AHMED TARIF",
+    role: 0,
+    countDown: 7,
+    prefixRequired: true,
+    premium: true,
+    category: "Music"
+  },
+
+  onStart: async ({ message, event, args }) => {
+    fs.ensureDirSync(CACHE);
+
+    const input = args.join(" ").trim();
+    if (!input) return message.reply("❌ | video2 <url/name>");
+
+    let file;
+
+    try {
+      message.reaction("⏳", event.messageID);
+
+      let url = input, title = "Video";
+
+      // 🔥 STRICT FIRST VIDEO ONLY
+      if (!isYT(input)) {
+        const res = await ytSearch(input);
+
+        // শুধু real video filter + duration থাকতে হবে (ads/live বাদ)
+        const videos = res.videos
+          .filter(v => v.type === "video" && v.seconds > 0);
+
+        if (!videos.length) return message.reply("❌ | No video found");
+
+        const first = videos[0]; // 💯 first result
+
+        url = first.url;
+        title = first.title;
+      }
+
+      const { data } = await axios.get(
+        `${API}/nazrul/youtube?type=mp4&url=${encodeURIComponent(url)}`
+      );
+
+      const dl = getUrl(data);
+      if (!dl) return message.reply("❌ | No download link");
+
+      file = path.join(CACHE, `${safeName(title)}.mp4`);
+
+      const stream = await axios({
+        url: dl,
+        method: "GET",
+        responseType: "stream"
+      });
+
+      await new Promise((res, rej) => {
+        const writer = fs.createWriteStream(file);
+        stream.data.pipe(writer);
+        writer.on("finish", res);
+        writer.on("error", rej);
+      });
+
+      await message.reply({
+        body: `✅ | ${title}`,
+        attachment: fs.createReadStream(file)
+      });
+
+      message.reaction("✅", event.messageID);
+
+    } catch (e) {
+      console.log(e);
+      message.reaction("❌", event.messageID);
+      message.reply("❌ | Failed!");
+    } finally {
+      if (file && fs.existsSync(file)) fs.unlinkSync(file);
+    }
+  }
 };
